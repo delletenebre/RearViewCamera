@@ -2,6 +2,9 @@
 // Created by Eric on 12/31/2015.
 //
 
+#include "FrameRenderer.h"
+#include "util.h"
+
 FrameRenderer::FrameRenderer(JNIEnv* jenv, jstring rsPath, DeviceSettings dSets) {
 
 	int bufLength;  // number of bytes in buffer, depends on color space
@@ -11,35 +14,35 @@ FrameRenderer::FrameRenderer(JNIEnv* jenv, jstring rsPath, DeviceSettings dSets)
 
 	//TODO: include a case ARGB: in switch statement?
 
-    // Determine the color space of the input buffer, depending on the device selected
+	// Determine the color space of the input buffer, depending on the device selected
 	switch(dSets.color_format){
 		case YUYV:
 			bufLength = frameWidth*frameHeight*2;
 			framePixelFormat = WINDOW_FORMAT_RGBA_8888;
-	        processFrame = &FrameRenderer::processFromYUYV;
+			processFrame = &FrameRenderer::processFromYUYV;
 			initRenderscript(jenv, rsPath, bufLength);
-	        break;
+			break;
 		case UYVY:
 			bufLength = frameWidth*frameHeight*2;
-	        framePixelFormat = WINDOW_FORMAT_RGBA_8888;
+			framePixelFormat = WINDOW_FORMAT_RGBA_8888;
 			processFrame = &FrameRenderer::processFromUYVY;
-	        initRenderscript(jenv, rsPath, bufLength);
-	        break;
+			initRenderscript(jenv, rsPath, bufLength);
+			break;
 		case RGB565:    // no need to init renderscript here as conversion is not necessary
 			bufLength = frameWidth*frameHeight*2;
-	        framePixelFormat = WINDOW_FORMAT_RGB_565;
+			framePixelFormat = WINDOW_FORMAT_RGB_565;
 			processFrame = &FrameRenderer::processFromRGB;
-	        break;
+			break;
 		case RGBA8888:
 			bufLength = frameWidth*frameHeight*4;
-	        framePixelFormat = WINDOW_FORMAT_RGBA_8888;
-	        processFrame = &FrameRenderer::processFromRGB;
-	        break;
+			framePixelFormat = WINDOW_FORMAT_RGBA_8888;
+			processFrame = &FrameRenderer::processFromRGB;
+			break;
 		default:
 			bufLength = frameWidth*frameHeight*2;
-	        framePixelFormat = WINDOW_FORMAT_RGBA_8888;
+			framePixelFormat = WINDOW_FORMAT_RGBA_8888;
 			processFrame = &FrameRenderer::processFromYUYV;
-	        initRenderscript(jenv, rsPath, bufLength);
+			initRenderscript(jenv, rsPath, bufLength);
 	}
 }
 

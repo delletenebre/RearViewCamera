@@ -45,7 +45,10 @@ public:
 	static DeviceType detect_device(const char* dev_name);
 
 	bool video_device_attached() {
-		return file_descriptor != -1;
+		if (file_descriptor == -1)
+			return false;
+		else
+			return true;
 	}
 
 private:

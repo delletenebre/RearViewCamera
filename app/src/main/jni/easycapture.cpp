@@ -1,6 +1,7 @@
+#include "easycapture.h"
+#include "util.h"
+#include "VideoDevice.h"
 #include <cstring>
-
-
 
 JNIEXPORT jint JNICALL Java_kg_delletenebre_rearviewcamera_NativeEasyCapture_startDevice(JNIEnv* jenv, jobject thisObj,
 		jstring rsPath, jstring deviceName, jint width, jint height, jint devType,

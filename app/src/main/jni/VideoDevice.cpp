@@ -5,6 +5,7 @@
  *      Author: Eric
  */
 
+#include "VideoDevice.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
@@ -23,7 +24,7 @@ VideoDevice::VideoDevice (DeviceSettings devSets) {
 	frame_buffers = nullptr;
 	file_descriptor = -1;
 
-    curBufferIndex = 0;
+	curBufferIndex = 0;
 
 	int area = devSets.frame_width * devSets.frame_height;
 
@@ -49,7 +50,7 @@ int VideoDevice::open_device() {
 	if (file_descriptor == -1)
 		return ERROR_LOCAL;
 
-    return SUCCESS_LOCAL;
+	return SUCCESS_LOCAL;
 }
 
 /* Initialize video device with the given frame size.
@@ -62,93 +63,157 @@ int VideoDevice::open_device() {
  * Returns SUCCESS_LOCAL if no errors, otherwise ERROR_LOCAL.
  */
 int VideoDevice::init_device() {
-    struct v4l2_capability cap;
-    struct v4l2_cropcap cropcap;
-    struct v4l2_crop crop;
-    struct v4l2_format fmt;
-    v4l2_std_id std_id;
-    unsigned int min;
+	struct v4l2_capability cap;
+	struct v4l2_cropcap cropcap;
+	struct v4l2_crop crop;
+	struct v4l2_format fmt;
+	v4l2_std_id std_id;
+	unsigned int min;
 
-    CLEAR(cap);
-    if(-1 == xioctl(file_descriptor, VIDIOC_QUERYCAP, &cap)) {
-        if(EINVAL == errno) {
+	CLEAR(cap);
+	if(-1 == xioctl(file_descriptor, VIDIOC_QUERYCAP, &cap)) {
+		if(EINVAL == errno) {
 
-            return ERROR_LOCAL;
-        } else {
-            return errnoexit("VIDIOC_QUERYCAP");
+			return ERROR_LOCAL;
+		} else {
+			return errnoexit("VIDIOC_QUERYCAP");
+		}
+	}
+
+	if(!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+		LOGE("device is not a video capture device");
+		return ERROR_LOCAL;
+	}
+
+	if(!(cap.capabilities & V4L2_CAP_STREAMING)) {
+		LOGE("device does not support streaming i/o");
+		return ERROR_LOCAL;
+	}
+
+
+	/*  Input selection isn't helping EMPIA or SOMAGIC.  Commenting out until further research is done
+        // Need to set empia devices to composite input
+        if(device_sets.device_type == EMPIA) {
+            int input = 2;
+
+            if (-1 == xioctl (file_descriptor, VIDIOC_S_INPUT, &input)) {
+                    return errnoexit("VIDIOC_S_INPUT");
+                }
         }
-    }
 
-    if(!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-        LOGE("device is not a video capture device");
-        return ERROR_LOCAL;
-    }
+        to be sure none of this is needed.
+        Commented Somagic selection out for the time being.  Didn't seem to help much.
 
-    if(!(cap.capabilities & V4L2_CAP_STREAMING)) {
-        LOGE("device does not support streaming i/o");
-        return ERROR_LOCAL;
-    }
 
-    CLEAR(std_id);
+         * Info:
+         * Somagic based devices do NOT like to start streaming before input is received
+         * Iterate through
+
+        if(device_sets.device_type == SOMAGIC)
+        {
+            struct timeval start, end, waitTime;
+            waitTime.tv_sec = 10;
+            waitTime.tv_usec = 0;
+
+            struct v4l2_input inputInfo;
+            bool signalDetected = false;
+            int input;
+
+
+             * Iterate through the available inputs for 10 seconds, looking for a signal.
+             * If none is found we will exit device initialization and return an error
+
+            gettimeofday(&start, NULL);
+            while (!signalDetected && (end.tv_sec < (start.tv_sec + waitTime.tv_sec))) {
+                input = 0;
+                CLEAR(inputInfo);
+                while (-1 != xioctl (file_descriptor, VIDIOC_ENUMINPUT, &inputInfo))
+                {
+
+                    if (!(inputInfo.status & V4L2_IN_ST_NO_SIGNAL)) {
+
+                        if (-1 == xioctl (file_descriptor, VIDIOC_S_INPUT, &input)) {
+                            return errnoexit("VIDIOC_S_INPUT");
+                        }
+
+                        signalDetected = true;
+                        break;
+                    }
+
+                    CLEAR(inputInfo);
+                    input++;
+                }
+                sleep(1);
+                gettimeofday(&end, NULL);
+            }
+
+            if (!signalDetected) {
+
+                return errnoexit("Video Source Not Found: SOMAGIC");
+            }
+        }*/
+
+
+	CLEAR(std_id);
 	switch(device_sets.standard_id) {
-	case NTSC:
-		std_id = V4L2_STD_NTSC;
-		break;
-	case PAL:
-		std_id = V4L2_STD_PAL;
-		break;
-	default:
-		std_id = V4L2_STD_NTSC;
+		case NTSC:
+			std_id = V4L2_STD_NTSC;
+			break;
+		case PAL:
+			std_id = V4L2_STD_PAL;
+			break;
+		default:
+			std_id = V4L2_STD_NTSC;
 	}
 
 	if(-1 == xioctl(file_descriptor, VIDIOC_S_STD, &std_id)) {
-        return errnoexit("VIDIOC_S_STD");
-    }
+		return errnoexit("VIDIOC_S_STD");
+	}
 
-    CLEAR(cropcap);
-    cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	CLEAR(cropcap);
+	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if(0 == xioctl(file_descriptor, VIDIOC_CROPCAP, &cropcap)) {
-        crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        crop.c = cropcap.defrect;
+	if(0 == xioctl(file_descriptor, VIDIOC_CROPCAP, &cropcap)) {
+		crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		crop.c = cropcap.defrect;
 
-        if(-1 == xioctl(file_descriptor, VIDIOC_S_CROP, &crop)) {
-            switch(errno) {
-                case EINVAL:
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
+		if(-1 == xioctl(file_descriptor, VIDIOC_S_CROP, &crop)) {
+			switch(errno) {
+				case EINVAL:
+					break;
+				default:
+					break;
+			}
+		}
+	}
 
-    CLEAR(fmt);
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	CLEAR(fmt);
+	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    fmt.fmt.pix.width = device_sets.frame_width;
-    fmt.fmt.pix.height = device_sets.frame_height;
+	fmt.fmt.pix.width = device_sets.frame_width;
+	fmt.fmt.pix.height = device_sets.frame_height;
 
-    switch(device_sets.color_format){
-        case YUYV:
-            fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-            break;
-        case UYVY:
-            fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
-            break;
-        case RGB565:
-            fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
-            break;
-        default:
-            fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-    }
-    fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+	switch(device_sets.color_format){
+		case YUYV:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+			break;
+		case UYVY:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
+			break;
+		case RGB565:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
+			break;
+		default:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+	}
+	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
-    if(-1 == xioctl(file_descriptor, VIDIOC_S_FMT, &fmt)) {
-        return errnoexit("VIDIOC_S_FMT");
-    }
+	if(-1 == xioctl(file_descriptor, VIDIOC_S_FMT, &fmt)) {
+		return errnoexit("VIDIOC_S_FMT");
+	}
 
 
-    return init_mmap();
+	return init_mmap();
 }
 
 /* Initialize memory mapped buffers for video frames.
@@ -198,7 +263,7 @@ int VideoDevice::init_mmap() {
 
 		frame_buffers[buffer_count].length = buf.length;
 		frame_buffers[buffer_count].start = mmap(NULL, buf.length,
-		                                         PROT_READ | PROT_WRITE, MAP_SHARED, file_descriptor, buf.m.offset);
+												 PROT_READ | PROT_WRITE, MAP_SHARED, file_descriptor, buf.m.offset);
 
 		if(MAP_FAILED == frame_buffers[buffer_count].start) {
 			return errnoexit("mmap");
@@ -219,27 +284,27 @@ int VideoDevice::init_mmap() {
  * Returns SUCCESS_LOCAL if no errors, otherwise ERROR_LOCAL.
  */
 int VideoDevice::start_capture() {
-    unsigned int i;
-    enum v4l2_buf_type type;
+	unsigned int i;
+	enum v4l2_buf_type type;
 
-    for(i = 0; i < buffer_count; ++i) {
-        struct v4l2_buffer buf;
-        CLEAR(buf);
-        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory = V4L2_MEMORY_MMAP;
-        buf.index = i;
+	for(i = 0; i < buffer_count; ++i) {
+		struct v4l2_buffer buf;
+		CLEAR(buf);
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.memory = V4L2_MEMORY_MMAP;
+		buf.index = i;
 
-        if(-1 == xioctl(file_descriptor, VIDIOC_QBUF, &buf)) {
-            return errnoexit("VIDIOC_QBUF");
-        }
-    }
+		if(-1 == xioctl(file_descriptor, VIDIOC_QBUF, &buf)) {
+			return errnoexit("VIDIOC_QBUF");
+		}
+	}
 
-    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if(-1 == xioctl(file_descriptor, VIDIOC_STREAMON, &type)) {
-        return errnoexit("VIDIOC_STREAMON");
-    }
+	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if(-1 == xioctl(file_descriptor, VIDIOC_STREAMON, &type)) {
+		return errnoexit("VIDIOC_STREAMON");
+	}
 
-    return SUCCESS_LOCAL;
+	return SUCCESS_LOCAL;
 }
 
 /* Request a frame of video from the device to be output into the rgb
@@ -277,8 +342,8 @@ CaptureBuffer * VideoDevice::process_capture() {
 			break;
 		}
 
-		if (read_frame() == 1) {
-            return &frame_buffers[curBufferIndex];
+		if(read_frame() == 1) {
+			return &frame_buffers[curBufferIndex];
 		}
 	}
 
@@ -291,33 +356,33 @@ CaptureBuffer * VideoDevice::process_capture() {
  * Returns SUCCESS_LOCAL if no errors, otherwise ERROR_LOCAL.
  */
 int VideoDevice::read_frame() {
-    struct v4l2_buffer buf;
-    CLEAR(buf);
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory = V4L2_MEMORY_MMAP;
+	struct v4l2_buffer buf;
+	CLEAR(buf);
+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	buf.memory = V4L2_MEMORY_MMAP;
 
-    if(-1 == xioctl(file_descriptor, VIDIOC_DQBUF, &buf)) {
-        switch(errno) {
-            case EAGAIN:
-                return 0;
-            case EIO:
-            default:
+	if(-1 == xioctl(file_descriptor, VIDIOC_DQBUF, &buf)) {
+		switch(errno) {
+			case EAGAIN:
+				return 0;
+			case EIO:
+			default:
 				return 1;
-                //return errnoexit("VIDIOC_DQBUF");
-        }
-    }
+				//return errnoexit("VIDIOC_DQBUF");
+		}
+	}
 
-    assert(buf.index < buffer_count);
+	assert(buf.index < buffer_count);
 
 
-    // convert and copy the buffer for rendering
-    curBufferIndex = (int)(buf.index);
+	// convert and copy the buffer for rendering
+	curBufferIndex = (int)(buf.index);
 
-    if(-1 == xioctl(file_descriptor, VIDIOC_QBUF, &buf)) {
-    	return errnoexit("VIDIOC_QBUF");
-    }
+	if(-1 == xioctl(file_descriptor, VIDIOC_QBUF, &buf)) {
+		return errnoexit("VIDIOC_QBUF");
+	}
 
-    return 1;
+	return 1;
 }
 
 /* Stop capturing, uninitialize the device and free all memory. */
@@ -333,12 +398,12 @@ void VideoDevice::stop_device() {
  * Returns SUCCESS_LOCAL if no errors, otherwise ERROR_LOCAL.
  */
 int VideoDevice::stop_capture() {
-    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if(-1 != file_descriptor && -1 == xioctl(file_descriptor, VIDIOC_STREAMOFF, &type)) {
-        return errnoexit("VIDIOC_STREAMOFF");
-    }
+	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if(-1 != file_descriptor && -1 == xioctl(file_descriptor, VIDIOC_STREAMOFF, &type)) {
+		return errnoexit("VIDIOC_STREAMOFF");
+	}
 
-    return SUCCESS_LOCAL;
+	return SUCCESS_LOCAL;
 }
 
 /* Unmap and free memory-mapped frame buffers from the device.
@@ -434,7 +499,7 @@ int VideoDevice::v4l2_open(const char* dev_name) {
 		LOGE("Cannot open '%s': %d, %s", dev_name, errno, strerror(errno));
 		if(EACCES == errno) {
 			LOGE("Insufficient permissions on '%s': %d, %s", dev_name, errno,
-					strerror(errno));
+				 strerror(errno));
 		}
 		return ERROR_LOCAL;
 	}
@@ -450,4 +515,3 @@ int VideoDevice::v4l2_close(int fd) {
 	fd = -1;
 	return result;
 }
-
