@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Rear View Camera</string>
+    <string name="title_activity_settings">Настройки</string>
+
+    <string name="screen_size_placeholder" translatable="false">%1$sx%2$s</string>
+
+    <string name="pref_device_settings_title">Устройство Easycap</string>
+
+    <string name="pref_manual_set_dev_loc">Указать путь к устройству вручную</string>
+    <string name="pref_manual_set_dev_loc_summ">Включите, если устройство не обнаружено автоматически</string>
+    <string name="pref_select_dev_loc">Файл устройства</string>
+    <string name="pref_select_dev_loc_default">/dev/video0</string>
+    <string name="pref_name_manual_set_dev_loc_interval">Искать номер устройства в интервале чисел</string>
+    <string name="pref_summ_manual_set_dev_loc_interval">Включите, если устройство определяется в определённом динамическом диапазоне</string>
+    <string name="pref_name_manual_set_dev_loc_interval_min">Минимальный номер устройства</string>
+    <string name="pref_summ_manual_set_dev_loc_interval_min">0</string>
+    <string name="pref_name_manual_set_dev_loc_interval_max">Максимальный номер устройства</string>
+    <string name="pref_summ_manual_set_dev_loc_interval_max">3</string>
+
+    <string name="pref_manual_set_type">Указать тип устройства вручную</string>
+    <string name="pref_manual_set_type_summ">Включите, если тип Easycap-устройства не определён автоматически</string>
+    <string name="pref_easycap_type">Тип Easycap-устройства</string>
+
+    <string-array name="pref_select_easycap_entries">
+        <item>UTV007</item>
+        <item>Empia</item>
+        <item>STK1160</item>
+        <item>Somagic</item>
+    </string-array>
+
+    <string name="pref_select_easycap_default">UTV007</string>
+    <string name="pref_select_standard">Стандарт кодирования цвета</string>
+    <string name="pref_select_standard_default">0</string>
+
+    <string-array name="pref_select_standard_entries">
+        <item>NTSC</item>
+        <item>PAL</item>
+    </string-array>
+    <string-array name="pref_select_standard_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string name="pref_name_keep_aspect_ratio">Сохранять пропорции изображения</string>
+    <string name="pref_summ_keep_aspect_ratio">Отключите, чтобы изображение было растянуто на весь экран</string>
+
+    <string name="pref_name_mirrored">Отразить изображение зеркально</string>
+
+    <string name="pref_layout_settings_title">Общие</string>
+
+    <string name="pref_name_autodetect_usb_device">Автоопределение подключения устройства</string>
+    <string name="pref_summ_autodetect_usb_device">Запускать/завершать программу при физическом подключении/отключении Easycap-устройства\nВо избежание ошибок не включайте совместно с &#171;Интеграция с Remote Inputs Manager&#187;</string>
+
+    <string name="pref_name_autodetect_usb_device_interval">Интервал проверки подключения (мс)</string>
+    <string name="pref_summ_autodetect_usb_device_interval">1000</string>
+
+    <string name="pref_name_autodetect_rim">Интеграция с Remote Inputs Manager</string>
+    <string name="pref_summ_autodetect_rim">Запускать программу при получении EXTRA_ARGS от Remote Inputs Manager.\nЗавершать программу при получении любого значения EXTRA_ARGS не совпадающего с указанным.\nФормат &#60;extra_command:extra_args&#62;\nВо избежание ошибок не включайте совместно с &#171;Автоопределение подключения устройства&#187;</string>
+    <string name="pref_name_autodetect_rim_command">EXTRA_COMMAND</string>
+    <string name="pref_summ_autodetect_rim_command">TransmissionGearPosition</string>
+    <string name="pref_name_autodetect_rim_args">EXTRA_ARGS</string>
+    <string name="pref_summ_autodetect_rim_args">Reverse</string>
+
+    <string name="pref_name_fullscreen">Полноэкранный режим</string>
+    <string name="pref_summ_fullscreen">Скрыть строку уведомлений и навигационную панель Enable to hide action/navigation bars</string>
+
+    <string name="pref_name_mute">Отключать звук</string>
+    <string name="pref_summ_mute">Отключать звук медиаплеера во время работы программы</string>
+
+    <string name="pref_name_debug">Отладочная информация</string>
+    <string name="pref_summ_debug">Включить всплывающие окна и отправлять дополнительную информацию в logcat</string>
+
+    <string name="pref_layout_fullscreen">Start in fullscreen mode</string>
+    <string name="pref_layout_fullscreen_summ">Disable if you prefer a 4:3 aspect ratio</string>
+    <string name="pref_layout_leanback">Immersive mode</string>
+    <string name="pref_layout_leanback_summ">Enable to hide action/navigation bars</string>
+    <string name="pref_layout_toasts">Enable Toasts</string>
+    <string name="pref_layout_toasts_summ">Disable to remove info popups</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="dialog_choose_standard">Choose Region Standard</string>
+    <string name="title_activity_first_run">FirstRunActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+</resources>

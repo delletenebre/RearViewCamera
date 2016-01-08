@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/pref_device_settings_title"
+        android:key="pref_key_device_settings">
+        <CheckBoxPreference
+            android:key="pref_key_manual_set_dev_loc"
+            android:title="@string/pref_manual_set_dev_loc"
+            android:summary="@string/pref_manual_set_dev_loc_summ"
+            android:defaultValue="false" />
+        <EditTextPreference
+            android:dependency="pref_key_manual_set_dev_loc"
+            android:key="pref_select_dev_loc"
+            android:title="@string/pref_select_dev_loc"
+            android:defaultValue="@string/pref_select_dev_loc_default"
+            android:selectAllOnFocus="true"
+            android:singleLine="true" />
+        <CheckBoxPreference
+            android:dependency="pref_key_manual_set_dev_loc"
+            android:key="pref_key_manual_set_dev_loc_interval"
+            android:title="@string/pref_name_manual_set_dev_loc_interval"
+            android:summary="@string/pref_summ_manual_set_dev_loc_interval"
+            android:defaultValue="false" />
+        <EditTextPreference
+            android:dependency="pref_key_manual_set_dev_loc_interval"
+            android:key="pref_key_manual_set_dev_loc_interval_min"
+            android:title="@string/pref_name_manual_set_dev_loc_interval_min"
+            android:defaultValue="@string/pref_summ_manual_set_dev_loc_interval_min"
+            android:inputType="number"
+            android:selectAllOnFocus="true"
+            android:singleLine="true" />
+        <EditTextPreference
+            android:dependency="pref_key_manual_set_dev_loc_interval"
+            android:key="pref_key_manual_set_dev_loc_interval_max"
+            android:title="@string/pref_name_manual_set_dev_loc_interval_max"
+            android:defaultValue="@string/pref_summ_manual_set_dev_loc_interval_max"
+            android:inputType="number"
+            android:selectAllOnFocus="true"
+            android:singleLine="true" />
+
+
+        <CheckBoxPreference
+            android:key="pref_key_manual_set_type"
+            android:title="@string/pref_manual_set_type"
+            android:summary="@string/pref_manual_set_type_summ"
+            android:defaultValue="false" />
+        <ListPreference
+            android:dependency="pref_key_manual_set_type"
+            android:key="pref_select_easycap_type"
+            android:title="@string/pref_easycap_type"
+            android:dialogTitle="@string/pref_easycap_type"
+            android:entries="@array/pref_select_easycap_entries"
+            android:entryValues="@array/pref_select_easycap_entries"
+            android:defaultValue="@string/pref_select_easycap_default" />
+        <ListPreference
+            android:key="pref_select_standard"
+            android:title="@string/pref_select_standard"
+            android:dialogTitle="@string/pref_select_standard"
+            android:entries="@array/pref_select_standard_entries"
+            android:entryValues="@array/pref_select_standard_values"
+            android:defaultValue="@string/pref_select_standard_default" />
+
+        <CheckBoxPreference
+            android:key="pref_key_keep_aspect_ratio"
+            android:title="@string/pref_name_keep_aspect_ratio"
+            android:summary="@string/pref_summ_keep_aspect_ratio"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="pref_key_mirrored"
+            android:title="@string/pref_name_mirrored"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_layout_settings_title"
+        android:key="pref_key_layout_settings">
+
+        <CheckBoxPreference
+            android:key="pref_key_autodetect_usb_device"
+            android:title="@string/pref_name_autodetect_usb_device"
+            android:summary="@string/pref_summ_autodetect_usb_device"
+            android:defaultValue="true" />
+        <EditTextPreference
+            android:dependency="pref_key_autodetect_usb_device"
+            android:key="pref_key_autodetect_usb_device_interval"
+            android:title="@string/pref_name_autodetect_usb_device_interval"
+            android:defaultValue="@string/pref_summ_autodetect_usb_device_interval"
+            android:inputType="number"
+            android:selectAllOnFocus="true"
+            android:singleLine="true" />
+
+        <CheckBoxPreference
+            android:key="pref_key_autodetect_rim"
+            android:title="@string/pref_name_autodetect_rim"
+            android:summary="@string/pref_summ_autodetect_rim"
+            android:defaultValue="false" />
+        <EditTextPreference
+            android:dependency="pref_key_autodetect_rim"
+            android:key="pref_key_autodetect_rim_command"
+            android:title="@string/pref_name_autodetect_rim_command"
+            android:defaultValue="@string/pref_summ_autodetect_rim_command"
+            android:selectAllOnFocus="true"
+            android:singleLine="true" />
+        <EditTextPreference
+            android:dependency="pref_key_autodetect_rim"
+            android:key="pref_key_autodetect_rim_args"
+            android:title="@string/pref_name_autodetect_rim_args"
+            android:defaultValue="@string/pref_summ_autodetect_rim_args"
+            android:selectAllOnFocus="true"
+            android:singleLine="true" />
+
+        <CheckBoxPreference
+            android:key="pref_key_fullscreen"
+            android:title="@string/pref_name_fullscreen"
+            android:summary="@string/pref_summ_fullscreen"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="pref_key_mute"
+            android:title="@string/pref_name_mute"
+            android:summary="@string/pref_summ_mute"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="pref_key_debug"
+            android:title="@string/pref_name_debug"
+            android:summary="@string/pref_summ_debug"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
