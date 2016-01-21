@@ -42,26 +42,10 @@ public class NativeEasyCapture implements EasyCapture {
     }
 
     private void connect(Context context) {
-        boolean deviceReady = true;
+
 
         File deviceFile = new File(deviceSets.devName);
-        if (deviceFile.exists()) {
-            if (!deviceFile.canRead()) {
-                if (DEBUG) {
-                    Log.d(TAG, "Insufficient permissions on " + deviceSets.devName +
-                            " -- does the app have the CAMERA permission?");
-                }
-                deviceReady = false;
-            }
-        } else {
-            if (DEBUG) {
-                Log.w(TAG, deviceSets.devName + " does not exist");
-            }
-
-            deviceReady = false;
-        }
-
-        if (deviceReady) {
+        if (deviceFile.exists() && deviceFile.canRead()) {
             if (DEBUG) {
                 Log.i(TAG, "Preparing camera with device name " + deviceSets.devName);
             }
@@ -70,7 +54,17 @@ public class NativeEasyCapture implements EasyCapture {
                     deviceSets.frameWidth, deviceSets.frameHeight, deviceSets.devType.second,
                     deviceSets.devStandard.second, deviceSets.numBuffers));
 
+        } else if (DEBUG) {
+            if (!deviceFile.exists()) {
+                Log.w(TAG, deviceSets.devName + " does not exist");
+            }
+
+            if (!deviceFile.canRead()) {
+                Log.d(TAG, "Insufficient permissions on " + deviceSets.devName +
+                        " -- does the app have the CAMERA permission?");
+            }
         }
+
     }
 
     public void getFrame(Surface mySurface) {

@@ -7,12 +7,12 @@
 
     <application
         android:allowBackup="true"
+        android:clearTaskOnLaunch="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
         android:launchMode="singleTask"
-        android:clearTaskOnLaunch="true"
-        android:screenOrientation="sensorLandscape">
+        android:screenOrientation="sensorLandscape"
+        android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTask">
@@ -29,8 +29,16 @@
             android:theme="@style/PreferenceScreen" />
         <activity
             android:name=".HiddenActivity"
+            android:theme="@style/Theme.Transparent"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.Transparent" />
+            android:noHistory="true"
+            android:excludeFromRecents="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter" />
+        </activity>
 
         <receiver android:name=".CommandsReceiver">
             <intent-filter>
@@ -42,8 +50,8 @@
             </intent-filter>
         </receiver>
 
-        <service
-            android:name=".DetectSignalService" />
+        <service android:name=".DetectSignalService" />
+
     </application>
 
 </manifest>

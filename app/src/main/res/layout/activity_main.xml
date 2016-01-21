@@ -13,4 +13,12 @@
         android:layout_height="match_parent"
         android:layout_gravity="center" />
 
+    <kg.delletenebre.rearviewcamera.UVC.UVCCameraView
+        android:id="@+id/camera_view_uvc"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+
 </FrameLayout>

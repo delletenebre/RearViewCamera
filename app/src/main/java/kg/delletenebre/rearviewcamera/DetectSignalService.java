@@ -1,18 +1,25 @@
 package kg.delletenebre.rearviewcamera;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 public class DetectSignalService extends Service {
     private final String TAG = getClass().getName();
     private boolean DEBUG = false;
     public static Service service;
+    public static int NOTIFICATION_ID = 13;
+
 
     private SharedPreferences settings;
 
@@ -26,6 +33,7 @@ public class DetectSignalService extends Service {
     };
 
     private boolean deviceDetected;
+    private NotificationManager mNotificationManager;
 
     @Override
     public  void onCreate() {
@@ -39,6 +47,26 @@ public class DetectSignalService extends Service {
         receiver = new CommandsReceiver();
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
         registerReceiver(receiver, intentFilter);
+
+        Intent notificationIntent = new Intent(this, SettingsActivity.class);
+        notificationIntent.setFlags(
+                Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED );
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationCompat.Builder notification = new NotificationCompat.Builder(this)
+                .setSmallIcon(getNotificationIcon())
+                .setContentTitle(getString(R.string.notification_bar_title))
+                .setContentText(getResources().getString(R.string.notification_bar_subtitle))
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(false)
+                .setOngoing(true);
+
+        mNotificationManager.notify(NOTIFICATION_ID, notification.build());
 
         mHandler = new Handler();
         deviceDetected = false;
@@ -60,6 +88,8 @@ public class DetectSignalService extends Service {
             mHandler.removeCallbacks(mRunnable);
             mHandler = null;
         }
+
+        mNotificationManager.cancel(NOTIFICATION_ID);
 
         service = null;
 
@@ -124,5 +154,12 @@ public class DetectSignalService extends Service {
         } else {
             stopSelf();
         }
+    }
+
+    private int getNotificationIcon() {
+//        return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+//                ? R.mipmap.ic_launcher
+//                : R.mipmap.ic_launcher;
+        return R.drawable.ic_notification_5;
     }
 }
