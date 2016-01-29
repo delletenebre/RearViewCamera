@@ -31,6 +31,7 @@
         <item>Empia</item>
         <item>STK1160</item>
         <item>Somagic</item>
+        <item>UVC</item>
     </string-array>
 
     <string name="pref_select_easycap_default">UTV007</string>
@@ -51,13 +52,48 @@
 
     <string name="pref_name_mirrored">Отразить изображение зеркально</string>
 
+    <string name="pref_name_uvc_resolution">Разрешение UVC-камеры</string>
+    <string-array name="pref_titles_uvc_resolution">
+        <item>1920 x 1080 [16:9]</item>
+        <item>1600 х 1200 [4:3]</item>
+        <item>1280 x 1024 [5:4]</item>
+        <item>1280 x 960 [4:3]</item>
+        <item>1280 x 720 [16:9]</item>
+        <item>960 x 544 [16:9]</item>
+        <item>800 x 600 [4:3]</item>
+        <item>704 x 576 [4:3]</item>
+        <item>640 x 480 [4:3]</item>
+        <item>640 x 360 [16:9]</item>
+        <item>424 x 240 [4:3]</item>
+        <item>352 x 240 [4:3]</item>
+        <item>320 x 240 [4:3]</item>
+        <item>320 x 180 [16:9]</item>
+    </string-array>
+    <string-array name="pref_values_uvc_resolution">
+        <item>1920x1080</item>
+        <item>1600х1200</item>
+        <item>1280x1024</item>
+        <item>1280x960</item>
+        <item>1280x720</item>
+        <item>960x544</item>
+        <item>800x600</item>
+        <item>704x576</item>
+        <item>640x480</item>
+        <item>640x360</item>
+        <item>424x240</item>
+        <item>352x240</item>
+        <item>320x240</item>
+        <item>320x180</item>
+    </string-array>
+    <string name="pref_default_uvc_resolution">640x480</string>
+
     <string name="pref_layout_settings_title">Общие</string>
 
     <string name="pref_name_autodetect_usb_device">Автоопределение подключения устройства</string>
     <string name="pref_summ_autodetect_usb_device">Запускать/завершать программу при физическом подключении/отключении Easycap-устройства\nВо избежание ошибок не включайте совместно с &#171;Интеграция с Remote Inputs Manager&#187;</string>
 
-    <string name="pref_name_autodetect_usb_device_interval">Интервал проверки подключения (мс)</string>
-    <string name="pref_summ_autodetect_usb_device_interval">1000</string>
+    <!--<string name="pref_name_autodetect_usb_device_interval">Интервал проверки подключения (мс)</string>-->
+    <!--<string name="pref_summ_autodetect_usb_device_interval">1000</string>-->
 
     <string name="pref_name_autodetect_rim">Интеграция с Remote Inputs Manager</string>
     <string name="pref_summ_autodetect_rim">Запускать программу при получении EXTRA_ARGS от Remote Inputs Manager.\nЗавершать программу при получении любого значения EXTRA_ARGS не совпадающего с указанным.\nФормат &#60;extra_command:extra_args&#62;\nВо избежание ошибок не включайте совместно с &#171;Автоопределение подключения устройства&#187;</string>

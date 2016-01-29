@@ -46,8 +46,8 @@ public class SettingsActivity extends Activity {
             bindPreferenceSummaryToValue(findPreference("pref_key_manual_set_dev_loc_interval_min"));
             bindPreferenceSummaryToValue(findPreference("pref_key_manual_set_dev_loc_interval_max"));
             bindPreferenceSummaryToValue(findPreference("pref_select_easycap_type"));
+            bindPreferenceSummaryToValue(findPreference("pref_key_uvc_resolution"));
             bindPreferenceSummaryToValue(findPreference("pref_select_standard"));
-            bindPreferenceSummaryToValue(findPreference("pref_key_autodetect_usb_device_interval"));
             bindPreferenceSummaryToValue(findPreference("pref_key_autodetect_rim_command"));
             bindPreferenceSummaryToValue(findPreference("pref_key_autodetect_rim_args"));
         }

@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 
 public class HiddenActivity extends Activity {
-    private final String TAG = getClass().getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -15,9 +14,8 @@ public class HiddenActivity extends Activity {
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 
-        if (settings.getBoolean("pref_key_autodetect_signal", true)
-                && DetectSignalService.service == null) {
-            startService(new Intent(this, DetectSignalService.class));
+        if (settings.getBoolean("pref_key_autodetect_usb_device", true)) {
+            startActivity(new Intent(this, MainActivity.class));
         }
 
         finish();

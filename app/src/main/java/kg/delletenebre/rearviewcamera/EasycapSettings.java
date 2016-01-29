@@ -145,5 +145,5 @@ public class EasycapSettings {
 
         return file.exists() && file.canRead();
     }
-    
+
 }

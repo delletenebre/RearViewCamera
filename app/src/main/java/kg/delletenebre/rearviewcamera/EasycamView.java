@@ -88,7 +88,18 @@ public class EasycamView extends TextureView implements Runnable {
         }
 
     }
+    public double getAspectRatio() {
+        double aspectRatio = 0;
+        if (capDevice != null) {
+            EasycapSettings deviceSettings = capDevice.getSettings();
 
+            if (deviceSettings != null) {
+                aspectRatio = (deviceSettings.frameWidth * 1f / deviceSettings.frameHeight);
+            }
+        }
+
+        return aspectRatio;
+    }
     public HashMap<String, Integer> getAspectRatioHeight() {
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         HashMap<String, Integer> result = new HashMap<>();
@@ -155,6 +166,11 @@ public class EasycamView extends TextureView implements Runnable {
             if (DEBUG) {
                 Log.i(TAG, "View resumed");
             }
+
+            DisplayMetrics metrics = this.getResources().getDisplayMetrics();
+            setAspectRatio(( settings.getBoolean("pref_key_keep_aspect_ratio", true) )
+                    ? getAspectRatio()
+                    : metrics.widthPixels / (float) metrics.heightPixels);
 
             mRunning = true;
             mThread = new Thread(this);

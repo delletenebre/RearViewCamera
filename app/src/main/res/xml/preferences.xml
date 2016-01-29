@@ -54,6 +54,14 @@
             android:entryValues="@array/pref_select_easycap_entries"
             android:defaultValue="@string/pref_select_easycap_default" />
         <ListPreference
+            android:dependency="pref_key_manual_set_type"
+            android:key="pref_key_uvc_resolution"
+            android:title="@string/pref_name_uvc_resolution"
+            android:dialogTitle="@string/pref_name_uvc_resolution"
+            android:entries="@array/pref_titles_uvc_resolution"
+            android:entryValues="@array/pref_values_uvc_resolution"
+            android:defaultValue="@string/pref_default_uvc_resolution" />
+        <ListPreference
             android:key="pref_select_standard"
             android:title="@string/pref_select_standard"
             android:dialogTitle="@string/pref_select_standard"
@@ -71,6 +79,7 @@
             android:key="pref_key_mirrored"
             android:title="@string/pref_name_mirrored"
             android:defaultValue="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -82,14 +91,14 @@
             android:title="@string/pref_name_autodetect_usb_device"
             android:summary="@string/pref_summ_autodetect_usb_device"
             android:defaultValue="true" />
-        <EditTextPreference
-            android:dependency="pref_key_autodetect_usb_device"
-            android:key="pref_key_autodetect_usb_device_interval"
-            android:title="@string/pref_name_autodetect_usb_device_interval"
-            android:defaultValue="@string/pref_summ_autodetect_usb_device_interval"
-            android:inputType="number"
-            android:selectAllOnFocus="true"
-            android:singleLine="true" />
+        <!--<EditTextPreference-->
+            <!--android:dependency="pref_key_autodetect_usb_device"-->
+            <!--android:key="pref_key_autodetect_usb_device_interval"-->
+            <!--android:title="@string/pref_name_autodetect_usb_device_interval"-->
+            <!--android:defaultValue="@string/pref_summ_autodetect_usb_device_interval"-->
+            <!--android:inputType="number"-->
+            <!--android:selectAllOnFocus="true"-->
+            <!--android:singleLine="true" />-->
 
         <CheckBoxPreference
             android:key="pref_key_autodetect_rim"

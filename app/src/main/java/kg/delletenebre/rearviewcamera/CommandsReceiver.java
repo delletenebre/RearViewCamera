@@ -46,29 +46,6 @@ public class CommandsReceiver extends BroadcastReceiver {
                 }
             }
         }
-
-        if (intent.getAction().equals(Intent.ACTION_USER_PRESENT)
-                || intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
-            if (DEBUG) {
-                Log.d(TAG, "**** ACTION_BOOT_COMPLETED || ACTION_USER_PRESENT ****");
-            }
-
-//            Intent mIntent = new Intent(context, HiddenActivity.class);
-//            mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//            context.startActivity(mIntent);
-
-            if (settings.getBoolean("pref_key_autodetect_signal", true)
-                    && DetectSignalService.service == null) {
-                context.startService(new Intent(context, DetectSignalService.class));
-            }
-
-        } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
-            if (DEBUG) {
-                Log.d(TAG, "**** ACTION_SCREEN_OFF ****");
-            }
-
-            context.stopService(new Intent(context, DetectSignalService.class));
-        }
     }
 }
 
