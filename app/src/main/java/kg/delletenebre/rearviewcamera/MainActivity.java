@@ -9,6 +9,7 @@ import android.hardware.usb.UsbDevice;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -35,11 +36,13 @@ public class MainActivity extends Activity {
     private static SharedPreferences settings;
 
     private EasycamView cameraView;
-    private FrameLayout mainLayout;
 
     private AudioManager mAudioManager;
 
     private boolean pref_isMute;
+
+    private static int currentVolume, maximumVolume;
+    private static final int VOLUME_STREAM = AudioManager.STREAM_MUSIC;
 
 
     // ---- UVC ---- //
@@ -59,11 +62,12 @@ public class MainActivity extends Activity {
     private UVCCameraView cameraViewUVC;
     // for open&start / stop&close camera preview
     private Surface mPreviewSurface;
-
-    private UsbDevice mUsbDevice;
-    private String USBDeviceName = "";
     // ---- END UVC ---- //
 
+    private int __volumeSteps, __volumeDelay;
+    private boolean __volumeShowUI;
+    private Handler __volumeHandler;
+    private Runnable __volumeRunnable;
 
 
 
@@ -80,23 +84,16 @@ public class MainActivity extends Activity {
         cameraViewUVC = (UVCCameraView) findViewById(R.id.camera_view_uvc);
         cameraViewUVC.setSurfaceTextureListener(mSurfaceTextureListener);
         mUSBMonitor = new USBMonitor(this, mOnDeviceConnectListener);
-        if (isUVCMode()) {
-            reconnectUVC(true);
-        }
 
-        mainLayout = (FrameLayout) findViewById(R.id.layout_main);
+        FrameLayout mainLayout = (FrameLayout) findViewById(R.id.layout_main);
         mainLayout.setOnTouchListener(new OnSwipeTouchListener(this) {
             @Override
             public void onClick() {
                 super.onClick();
 
                 if (isUVCMode()) {
-                    if (mUVCCamera != null) {
-                        mUVCCamera.destroy();
-                        mUVCCamera = null;
-                    }
+                    reconnectUVC();
 
-                    reconnectUVC(false);
                 } else if (cameraView != null) {
                     cameraView.restart();
                 }
@@ -113,14 +110,19 @@ public class MainActivity extends Activity {
 
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        currentVolume = mAudioManager.getStreamVolume(VOLUME_STREAM);
+        maximumVolume = mAudioManager.getStreamMaxVolume(VOLUME_STREAM);
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
+        mUSBMonitor.register();
+
         pref_isMute = settings.getBoolean("pref_key_mute", true);
 
+        currentVolume = mAudioManager.getStreamVolume(VOLUME_STREAM);
         setMute(true);
         activity = this;
 
@@ -133,11 +135,11 @@ public class MainActivity extends Activity {
         boolean isUVCMode = isUVCMode();
 
 
-        if (mUSBMonitor == null) {
-            mUSBMonitor = new USBMonitor(this, mOnDeviceConnectListener);
-        } else if (!mUSBMonitor.isRegistered()) {
-            mUSBMonitor.register();
-        }
+//        if (mUSBMonitor == null) {
+//            mUSBMonitor = new USBMonitor(this, mOnDeviceConnectListener);
+//        } else if (!mUSBMonitor.isRegistered()) {
+//            mUSBMonitor.register();
+//        }
 
 
         if (cameraView != null) {
@@ -154,8 +156,6 @@ public class MainActivity extends Activity {
             cameraViewUVC.setScaleX(mirrored ? -1 : 1);
             cameraViewUVC.setVisibility(isUVCMode ? View.VISIBLE : View.INVISIBLE);
         }
-
-        USBDeviceName = settings.getString("uvc_usb_device_name", "");
     }
 
     @Override
@@ -164,10 +164,6 @@ public class MainActivity extends Activity {
         activity = null;
         if (mUVCCamera != null) {
             mUVCCamera.stopPreview();
-        }
-
-        if (mUSBMonitor != null && mUSBMonitor.isRegistered()) {
-            mUSBMonitor.unregister();
         }
 
         super.onPause();
@@ -213,41 +209,94 @@ public class MainActivity extends Activity {
 
     private void setMute(boolean state) {
         if (pref_isMute) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                        (state) ? AudioManager.ADJUST_MUTE : AudioManager.ADJUST_UNMUTE,
-                        0);
+            if (settings.getBoolean("pref_key_mute_ease", true)) {
+                Thread t = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            while (__volumeSteps > 0 || !Thread.currentThread().isInterrupted()) {
+                                TimeUnit.MILLISECONDS.sleep(__volumeDelay);
+                                __volumeHandler.post(__volumeRunnable);
+                                __volumeSteps--;
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                __volumeHandler = new Handler();
+                int steps;
+                __volumeShowUI = DEBUG;
+
+                if (state) {
+                    int vol = Math.round(maximumVolume * 0.15f);
+                    steps = currentVolume - vol;
+                    __volumeRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            mAudioManager.setStreamVolume(VOLUME_STREAM,
+                                    mAudioManager.getStreamVolume(VOLUME_STREAM) - 1,
+                                    __volumeShowUI ? AudioManager.FLAG_SHOW_UI : 0);
+                        }
+                    };
+                } else {
+                    steps = currentVolume - mAudioManager.getStreamVolume(VOLUME_STREAM);
+                    __volumeRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            mAudioManager.setStreamVolume(VOLUME_STREAM,
+                                    mAudioManager.getStreamVolume(VOLUME_STREAM) + 1,
+                                    __volumeShowUI ? AudioManager.FLAG_SHOW_UI : 0);
+                        }
+                    };
+                }
+
+                if (steps > 0) {
+                    __volumeSteps = steps;
+                    __volumeDelay = 750 / steps;
+
+                    t.interrupt();
+                    t.start();
+                }
             } else {
-                mAudioManager.setStreamMute(AudioManager.STREAM_MUSIC, state);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    mAudioManager.adjustStreamVolume(VOLUME_STREAM,
+                            (state) ? AudioManager.ADJUST_MUTE : AudioManager.ADJUST_UNMUTE,
+                            0);
+                } else {
+                    mAudioManager.setStreamMute(VOLUME_STREAM, state);
+                }
             }
         }
     }
 
     public static boolean isUVCMode() {
-        String easycapType = "UTV007";
+        String easycapType = "";
         boolean isManualType = false;
         if (settings != null) {
-            easycapType = settings.getString("pref_select_easycap_type", "UTV007");
+            easycapType = settings.getString("pref_select_easycap_type", "");
             isManualType = settings.getBoolean("pref_key_manual_set_type", false);
         }
 
         return isManualType && easycapType.equals("UVC");
     }
 
-    private void reconnectUVC(boolean setDefaultDevice) {
-        if (mUVCCamera != null) {
-            mUVCCamera.destroy();
-            mUVCCamera = null;
-        }
-
+    private void reconnectUVC() {
         Iterator<UsbDevice> deviceIterator = mUSBMonitor.getDevices();
         while (deviceIterator.hasNext()) {
             UsbDevice device = deviceIterator.next();
 
-            if (USBDeviceName.isEmpty()) { //|| device.getDeviceName().equals(USBDeviceName)) {
-                if (setDefaultDevice) {
-                    mUsbDevice = device;
-                }
+            if (DEBUG) {
+                Log.d(TAG, "--------------------");
+                Log.d(TAG, String.valueOf(device.getDeviceClass()));
+                Log.d(TAG, String.valueOf(device.getDeviceSubclass()));
+                Log.d(TAG, device.getDeviceName());
+                Log.d(TAG, String.valueOf(device.getProductId()));
+                Log.d(TAG, String.valueOf(device.getVendorId()));
+                Log.d(TAG, "--------------------");
+            }
+
+            if ( (device.getProductId() == 22608 && device.getVendorId() == 6380) ||
+                 (device.getDeviceClass() == 239 && device.getDeviceSubclass() == 2)) {
 
                 mUSBMonitor.requestPermission(device);
                 break;
@@ -256,7 +305,8 @@ public class MainActivity extends Activity {
     }
 
 
-    private final USBMonitor.OnDeviceConnectListener mOnDeviceConnectListener = new USBMonitor.OnDeviceConnectListener() {
+    private final USBMonitor.OnDeviceConnectListener mOnDeviceConnectListener =
+            new USBMonitor.OnDeviceConnectListener() {
         @Override
         public void onAttach(final UsbDevice device) {
             if (DEBUG) {
@@ -306,10 +356,10 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        public void onDisconnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
-            // need to check whether the comming device equal to camera device that currently using
-            if (mUVCCamera != null) {
+        public void onDisconnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock){
+            if (mUVCCamera != null && mUVCCamera.getDevice().equals(device)) {
                 mUVCCamera.close();
+
                 if (mPreviewSurface != null) {
                     mPreviewSurface.release();
                     mPreviewSurface = null;
@@ -332,23 +382,18 @@ public class MainActivity extends Activity {
     };
 
 
-    private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
+    private final TextureView.SurfaceTextureListener mSurfaceTextureListener =
+            new TextureView.SurfaceTextureListener() {
 
         @Override
-        public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
-            if (mUVCCamera != null) {
-                mUVCCamera.destroy();
-                mUVCCamera = null;
-            }
-
-//            if (mUsbDevice != null && mUSBMonitor != null) {
-//                mUSBMonitor.requestPermission(mUsbDevice);
-//            }
-            reconnectUVC(false);
+        public void onSurfaceTextureAvailable(final SurfaceTexture surface,
+                                              final int width, final int height) {
+            reconnectUVC();
         }
 
         @Override
-        public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {
+        public void onSurfaceTextureSizeChanged(final SurfaceTexture surface,
+                                                final int width, final int height) {
         }
 
         @Override
@@ -357,6 +402,7 @@ public class MainActivity extends Activity {
                 mPreviewSurface.release();
                 mPreviewSurface = null;
             }
+
             return true;
         }
 
