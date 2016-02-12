@@ -107,6 +107,8 @@
 
     <string name="pref_name_mute">Отключать звук</string>
     <string name="pref_summ_mute">Отключать звук медиаплеера во время работы программы</string>
+    <string name="pref_name_mute_ease">Приглушать звук</string>
+    <string name="pref_summ_mute_ease">Включите опцию, чтобы звук был плавно приглушён</string>
 
     <string name="pref_name_debug">Отладочная информация</string>
     <string name="pref_summ_debug">Включить всплывающие окна и отправлять дополнительную информацию в logcat</string>
