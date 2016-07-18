@@ -45,6 +45,7 @@
         <receiver android:name=".CommandsReceiver">
             <intent-filter>
                 <action android:name="org.kangaroo.rim.action.ACTION_DATA_RECEIVE" />
+                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
                 <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
 

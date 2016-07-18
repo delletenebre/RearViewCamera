@@ -58,8 +58,7 @@ public class EasycamView extends TextureView implements Runnable {
             Log.d(TAG, "EasycamView constructed");
         }
 
-        setFocusable(true);
-        setBackgroundColor(0);
+        //setFocusable(true);
         this.setSurfaceTextureListener(mSurfaceTextureListener);
 
     }
@@ -133,14 +132,6 @@ public class EasycamView extends TextureView implements Runnable {
         return result;
     }
 
-    protected Rect getViewingWindow() {
-        return mViewWindow;
-    }
-
-    private void setViewingWindow(int width, int height) {
-        mViewWindow = new Rect(0, 0, width, height);
-    }
-
     public void restart() {
         pause();
         resume();
@@ -167,7 +158,7 @@ public class EasycamView extends TextureView implements Runnable {
                 Log.i(TAG, "View resumed");
             }
 
-            DisplayMetrics metrics = this.getResources().getDisplayMetrics();
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
             setAspectRatio(( settings.getBoolean("pref_key_keep_aspect_ratio", true) )
                     ? getAspectRatio()
                     : metrics.widthPixels / (float) metrics.heightPixels);
@@ -228,7 +219,7 @@ public class EasycamView extends TextureView implements Runnable {
         @Override
         public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width,
                                                 final int height) {
-            setViewingWindow(width, height);
+            //setViewingWindow(width, height);
         }
 
         @Override

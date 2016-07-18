@@ -2,6 +2,6 @@
 
 <usb>
 	<usb-device class="239" subclass="2" />	<!-- all device of UVC -->
-	<usb-device vendor-id="7025" product-id="12290" class="0" subclass="0" /><!-- UTV007 -->
-	<usb-device vendor-id="1505" product-id="1032" class="0" subclass="0" /><!-- STK1160 -->
+	<usb-device vendor-id="7025" product-id="12290" /><!-- UTV007 -->
+	<usb-device vendor-id="1505" product-id="1032" /><!-- STK1160 -->
 </usb>

@@ -4,6 +4,7 @@
     <PreferenceCategory
         android:title="@string/pref_device_settings_title"
         android:key="pref_key_device_settings">
+
         <CheckBoxPreference
             android:key="pref_key_manual_set_dev_loc"
             android:title="@string/pref_manual_set_dev_loc"
@@ -83,6 +84,32 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="@string/pref_header_guide_lines">
+
+        <CheckBoxPreference
+            android:key="guide_lines_show"
+            android:title="@string/pref_title_guide_lines_show"
+            android:defaultValue="true" />
+
+        <ListPreference
+            android:dependency="guide_lines_show"
+            android:key="guide_lines_style"
+            android:title="@string/pref_title_guide_lines_style"
+            android:entries="@array/pref_guide_lines_style_titles"
+            android:entryValues="@array/pref_guide_lines_style_values"
+            android:defaultValue="0"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null" />
+
+        <Preference
+            android:id="@+id/guide_lines_calibrate_id"
+            android:dependency="guide_lines_show"
+            android:key="guide_lines_calibrate"
+            android:title="@string/pref_title_guide_lines_calibrate" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/pref_layout_settings_title"
         android:key="pref_key_layout_settings">
 
@@ -130,12 +157,6 @@
             android:key="pref_key_mute"
             android:title="@string/pref_name_mute"
             android:summary="@string/pref_summ_mute"
-            android:defaultValue="true" />
-        <CheckBoxPreference
-            android:dependency="pref_key_mute"
-            android:key="pref_key_mute_ease"
-            android:title="@string/pref_name_mute_ease"
-            android:summary="@string/pref_summ_mute_ease"
             android:defaultValue="true" />
 
         <CheckBoxPreference

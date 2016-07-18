@@ -107,22 +107,49 @@
 
     <string name="pref_name_mute">Отключать звук</string>
     <string name="pref_summ_mute">Отключать звук медиаплеера во время работы программы</string>
-    <string name="pref_name_mute_ease">Приглушать звук</string>
-    <string name="pref_summ_mute_ease">Включите опцию, чтобы звук был плавно приглушён</string>
 
     <string name="pref_name_debug">Отладочная информация</string>
     <string name="pref_summ_debug">Включить всплывающие окна и отправлять дополнительную информацию в logcat</string>
 
-    <string name="pref_layout_fullscreen">Start in fullscreen mode</string>
-    <string name="pref_layout_fullscreen_summ">Disable if you prefer a 4:3 aspect ratio</string>
-    <string name="pref_layout_leanback">Immersive mode</string>
-    <string name="pref_layout_leanback_summ">Enable to hide action/navigation bars</string>
-    <string name="pref_layout_toasts">Enable Toasts</string>
-    <string name="pref_layout_toasts_summ">Disable to remove info popups</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="dialog_choose_standard">Choose Region Standard</string>
-    <string name="title_activity_first_run">FirstRunActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <!-- Guide lines settings -->
+    <string name="pref_header_guide_lines">Парковочные линии</string>
+
+    <string name="pref_title_guide_lines_show">Отображать парковочные линии</string>
+
+    <string name="pref_title_guide_lines_style">Стиль парковочных линий</string>
+    <string-array name="pref_guide_lines_style_titles">
+        <item>Стиль 1</item>
+    </string-array>
+    <string-array name="pref_guide_lines_style_values" translatable="false">
+        <item>0</item>
+    </string-array>
+
+    <string name="pref_title_guide_lines_move_step">Шаг изменения парковочной линии</string>
+    <string name="pref_default_guide_lines_move_step">2</string>
+    <string name="pref_guide_lines_move_step_current_value">Шаг $1</string>
+    <string name="pref_guide_lines_move_step_unit">%</string>
+
+    <string name="pref_title_guide_lines_calibrate">Настройка&#8230;</string>
+
+    <string name="gl_saved">Настройки парковочных линий сохранены</string>
+    <string name="choose_line">Выберите точку для редактирования</string>
+
+    <string name="title_confirm_reset_guide_line_style">Сброс настроек</string>
+    <string name="confirm_reset_guide_line_style">Вы уверены что хотить установить настройки парковочных линий в значения по умолчанию?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="guide_lines_style_was_reset">Настройки парковочных линий установлены по умолчанию</string>
+
+    <string translatable="false" name="ic_up" >&#xe001;</string>
+    <string translatable="false" name="ic_right">&#xe004;</string>
+    <string translatable="false" name="ic_down">&#xe000;</string>
+    <string translatable="false" name="ic_left">&#xe002;</string>
+    <string translatable="false" name="ic_painter">&#xe003;</string>
+    <string translatable="false" name="ic_reset">&#xe005;</string>
+    <string translatable="false" name="ic_cancel">&#xe006;</string>
+    <string translatable="false" name="ic_ok">&#xe007;</string>
+    <string translatable="false" name="ic_car">&#xe008;</string>
+
 
 </resources>

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
 import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,6 +27,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import kg.delletenebre.rearviewcamera.GuideLines.GuideLinesLayout;
+import kg.delletenebre.rearviewcamera.GuideLines.GuideLinesView;
 import kg.delletenebre.rearviewcamera.UVC.UVCCameraView;
 
 public class MainActivity extends Activity {
@@ -41,35 +44,27 @@ public class MainActivity extends Activity {
 
     private boolean pref_isMute;
 
-    private static int currentVolume, maximumVolume;
     private static final int VOLUME_STREAM = AudioManager.STREAM_MUSIC;
 
 
     // ---- UVC ---- //
     // for thread pool
-    private static final int CORE_POOL_SIZE = 1;		// initial/minimum threads
-    private static final int MAX_POOL_SIZE = 4;			// maximum threads
-    private static final int KEEP_ALIVE_TIME = 10;		// time periods while keep the idle thread
+    private static final int CORE_POOL_SIZE = 1;	// initial/minimum threads
+    private static final int MAX_POOL_SIZE = 4;		// maximum threads
+    private static final int KEEP_ALIVE_TIME = 10;	// time periods while keep the idle thread
     protected static final ThreadPoolExecutor EXECUTER
             = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME,
-            TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+                TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
 
     // for accessing USB and USB camera
-    private int[] mUVCResolution = new int[2];
-    private USBMonitor mUSBMonitor;
+    private static USBMonitor mUSBMonitor;
     private UVCCamera mUVCCamera;
     private UVCCameraView cameraViewUVC;
-    // for open&start / stop&close camera preview
-    private Surface mPreviewSurface;
+    private UsbDevice connectedUsdDevice;
     // ---- END UVC ---- //
 
-    private int __volumeSteps, __volumeDelay;
-    private boolean __volumeShowUI;
-    private Handler __volumeHandler;
-    private Runnable __volumeRunnable;
-
-
+    GuideLinesLayout guideLinesLayout;
 
 
     @Override
@@ -82,7 +77,7 @@ public class MainActivity extends Activity {
 
         cameraView = (EasycamView) findViewById(R.id.camera_view);
         cameraViewUVC = (UVCCameraView) findViewById(R.id.camera_view_uvc);
-        cameraViewUVC.setSurfaceTextureListener(mSurfaceTextureListener);
+        guideLinesLayout = (GuideLinesLayout) findViewById(R.id.guide_lines);
         mUSBMonitor = new USBMonitor(this, mOnDeviceConnectListener);
 
         FrameLayout mainLayout = (FrameLayout) findViewById(R.id.layout_main);
@@ -103,15 +98,22 @@ public class MainActivity extends Activity {
             public void onLongClick() {
                 super.onLongClick();
 
-                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             }
         });
 
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        currentVolume = mAudioManager.getStreamVolume(VOLUME_STREAM);
-        maximumVolume = mAudioManager.getStreamMaxVolume(VOLUME_STREAM);
+
+
+
+//        Intent intent = getIntent();
+//        if (intent != null) {
+//            UsbDevice usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+//            if (usbDevice != null) {
+//                mUSBMonitor.requestPermission(usbDevice);
+//            }
+//        }
     }
 
     @Override
@@ -122,46 +124,31 @@ public class MainActivity extends Activity {
 
         pref_isMute = settings.getBoolean("pref_key_mute", true);
 
-        currentVolume = mAudioManager.getStreamVolume(VOLUME_STREAM);
         setMute(true);
         activity = this;
 
-        String[] mUVCResolutionString = settings.getString("pref_key_uvc_resolution",
-                getString(R.string.pref_default_uvc_resolution)).split("x");
-        for (int i = 0; i < mUVCResolution.length; i++) {
-            mUVCResolution[i] = Integer.parseInt(mUVCResolutionString[i]);
-        }
+
         boolean mirrored = settings.getBoolean("pref_key_mirrored", false);
         boolean isUVCMode = isUVCMode();
-
-
-//        if (mUSBMonitor == null) {
-//            mUSBMonitor = new USBMonitor(this, mOnDeviceConnectListener);
-//        } else if (!mUSBMonitor.isRegistered()) {
-//            mUSBMonitor.register();
-//        }
-
 
         if (cameraView != null) {
             cameraView.setScaleX(mirrored ? -1 : 1);
             cameraView.setVisibility(!isUVCMode ? View.VISIBLE : View.INVISIBLE);
         }
         if (cameraViewUVC != null) {
-            DisplayMetrics metrics = this.getResources().getDisplayMetrics();
-
-            cameraViewUVC.setAspectRatio(
-                ( settings.getBoolean("pref_key_keep_aspect_ratio", true) && mUVCResolution != null )
-                    ? mUVCResolution[0] / (float) mUVCResolution[1]
-                    : metrics.widthPixels / (float) metrics.heightPixels);
             cameraViewUVC.setScaleX(mirrored ? -1 : 1);
             cameraViewUVC.setVisibility(isUVCMode ? View.VISIBLE : View.INVISIBLE);
         }
+
     }
 
     @Override
     public void onPause() {
         setMute(false);
         activity = null;
+
+        mUSBMonitor.unregister();
+
         if (mUVCCamera != null) {
             mUVCCamera.stopPreview();
         }
@@ -182,6 +169,7 @@ public class MainActivity extends Activity {
 
         cameraView = null;
         cameraViewUVC = null;
+        connectedUsdDevice = null;
 
         super.onDestroy();
     }
@@ -209,62 +197,12 @@ public class MainActivity extends Activity {
 
     private void setMute(boolean state) {
         if (pref_isMute) {
-            if (settings.getBoolean("pref_key_mute_ease", true)) {
-                Thread t = new Thread(new Runnable() {
-                    public void run() {
-                        try {
-                            while (__volumeSteps > 0 || !Thread.currentThread().isInterrupted()) {
-                                TimeUnit.MILLISECONDS.sleep(__volumeDelay);
-                                __volumeHandler.post(__volumeRunnable);
-                                __volumeSteps--;
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-                __volumeHandler = new Handler();
-                int steps;
-                __volumeShowUI = DEBUG;
-
-                if (state) {
-                    int vol = Math.round(maximumVolume * 0.15f);
-                    steps = currentVolume - vol;
-                    __volumeRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            mAudioManager.setStreamVolume(VOLUME_STREAM,
-                                    mAudioManager.getStreamVolume(VOLUME_STREAM) - 1,
-                                    __volumeShowUI ? AudioManager.FLAG_SHOW_UI : 0);
-                        }
-                    };
-                } else {
-                    steps = currentVolume - mAudioManager.getStreamVolume(VOLUME_STREAM);
-                    __volumeRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            mAudioManager.setStreamVolume(VOLUME_STREAM,
-                                    mAudioManager.getStreamVolume(VOLUME_STREAM) + 1,
-                                    __volumeShowUI ? AudioManager.FLAG_SHOW_UI : 0);
-                        }
-                    };
-                }
-
-                if (steps > 0) {
-                    __volumeSteps = steps;
-                    __volumeDelay = 750 / steps;
-
-                    t.interrupt();
-                    t.start();
-                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mAudioManager.adjustStreamVolume(VOLUME_STREAM,
+                        (state) ? AudioManager.ADJUST_MUTE : AudioManager.ADJUST_UNMUTE,
+                        0);
             } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    mAudioManager.adjustStreamVolume(VOLUME_STREAM,
-                            (state) ? AudioManager.ADJUST_MUTE : AudioManager.ADJUST_UNMUTE,
-                            0);
-                } else {
-                    mAudioManager.setStreamMute(VOLUME_STREAM, state);
-                }
+                mAudioManager.setStreamMute(VOLUME_STREAM, state);
             }
         }
     }
@@ -280,24 +218,13 @@ public class MainActivity extends Activity {
         return isManualType && easycapType.equals("UVC");
     }
 
-    private void reconnectUVC() {
+    public static void reconnectUVC() {
         Iterator<UsbDevice> deviceIterator = mUSBMonitor.getDevices();
         while (deviceIterator.hasNext()) {
             UsbDevice device = deviceIterator.next();
 
-            if (DEBUG) {
-                Log.d(TAG, "--------------------");
-                Log.d(TAG, String.valueOf(device.getDeviceClass()));
-                Log.d(TAG, String.valueOf(device.getDeviceSubclass()));
-                Log.d(TAG, device.getDeviceName());
-                Log.d(TAG, String.valueOf(device.getProductId()));
-                Log.d(TAG, String.valueOf(device.getVendorId()));
-                Log.d(TAG, "--------------------");
-            }
-
-            if ( (device.getProductId() == 22608 && device.getVendorId() == 6380) ||
-                 (device.getDeviceClass() == 239 && device.getDeviceSubclass() == 2)) {
-
+            if (!isSerialDevice(device)
+                    && device.getDeviceClass() == 239 && device.getDeviceSubclass() == 2) {
                 mUSBMonitor.requestPermission(device);
                 break;
             }
@@ -325,18 +252,16 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
                     mUVCCamera.open(ctrlBlock);
-                    //if (DEBUG) Log.i(TAG, "supportedSize:" + mUVCCamera.getSupportedSize());
-                    if (mPreviewSurface != null) {
-                        mPreviewSurface.release();
-                        mPreviewSurface = null;
-                    }
+                    UVCCameraView.releasePreviewSurface();
+
+                    int[] resolution = UVCCameraView.getResolution();
                     try {
-                        mUVCCamera.setPreviewSize(mUVCResolution[0], mUVCResolution[1],
+                        mUVCCamera.setPreviewSize(resolution[0], resolution[1],
                                 UVCCamera.FRAME_FORMAT_MJPEG);
                     } catch (final IllegalArgumentException e) {
                         try {
                             // fallback to YUV mode
-                            mUVCCamera.setPreviewSize(mUVCResolution[0], mUVCResolution[1],
+                            mUVCCamera.setPreviewSize(resolution[0], resolution[1],
                                     UVCCamera.DEFAULT_PREVIEW_MODE);
                         } catch (final IllegalArgumentException e1) {
                             mUVCCamera.destroy();
@@ -344,12 +269,10 @@ public class MainActivity extends Activity {
                         }
                     }
                     if (mUVCCamera != null) {
-                        final SurfaceTexture st = cameraViewUVC.getSurfaceTexture();
-                        if (st != null) {
-                            mPreviewSurface = new Surface(st);
-                        }
-                        mUVCCamera.setPreviewDisplay(mPreviewSurface);
+                        mUVCCamera.setPreviewDisplay(cameraViewUVC.initPreviewSurface());
                         mUVCCamera.startPreview();
+
+                        connectedUsdDevice = mUVCCamera.getDevice();
                     }
                 }
             });
@@ -360,57 +283,38 @@ public class MainActivity extends Activity {
             if (mUVCCamera != null && mUVCCamera.getDevice().equals(device)) {
                 mUVCCamera.close();
 
-                if (mPreviewSurface != null) {
-                    mPreviewSurface.release();
-                    mPreviewSurface = null;
-                }
+                UVCCameraView.releasePreviewSurface();
             }
         }
 
         @Override
-        public void onDettach(final UsbDevice device) {
+        public void onDettach(final UsbDevice detachedDevice) {
             if (DEBUG) {
-                Log.d(TAG, "USB device detached: " + device.getDeviceName());
+                Log.d(TAG, "USB device detached: " + detachedDevice.getDeviceName());
             }
-            if (settings.getBoolean("pref_key_autodetect_usb_device", true)) {
+            if (settings.getBoolean("pref_key_autodetect_usb_device", true)
+                    && connectedUsdDevice != null
+                    && connectedUsdDevice.equals(detachedDevice)) {
                 finish();
             }
+
         }
 
         @Override
-        public void onCancel() { }
+        public void onCancel() {}
     };
 
+    public static boolean isSerialDevice(UsbDevice usbDevice) {
+        int pid = usbDevice.getProductId();
+        int vid = usbDevice.getVendorId();
 
-    private final TextureView.SurfaceTextureListener mSurfaceTextureListener =
-            new TextureView.SurfaceTextureListener() {
-
-        @Override
-        public void onSurfaceTextureAvailable(final SurfaceTexture surface,
-                                              final int width, final int height) {
-            reconnectUVC();
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(final SurfaceTexture surface,
-                                                final int width, final int height) {
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(final SurfaceTexture surface) {
-            if (mPreviewSurface != null) {
-                mPreviewSurface.release();
-                mPreviewSurface = null;
-            }
-
-            return true;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(final SurfaceTexture surface) {
-
-        }
-    };
-
+        return     (vid == 65535 && (pid == 17 || pid == 18))
+                || (vid == 1027 && (pid == 24577 || pid == 24597))
+                || (vid == 9025)
+                || (vid == 5824 && pid == 1155)
+                || (vid == 4292 && pid == 60000)
+                || (vid == 1659 && pid == 8963)
+                || (vid == 6790 && pid == 29987);
+    }
 
 }

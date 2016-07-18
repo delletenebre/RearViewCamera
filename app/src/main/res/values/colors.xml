@@ -3,4 +3,8 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="btn_ic_save">#aa00ff00</color>
+    <color name="btn_ic_reset">#aaff0000</color>
+    <color name="btn_ic_style">#aaffff00</color>
 </resources>

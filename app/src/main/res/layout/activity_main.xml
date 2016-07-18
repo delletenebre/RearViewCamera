@@ -20,5 +20,33 @@
         android:layout_gravity="center"
         android:visibility="gone" />
 
+    <kg.delletenebre.rearviewcamera.GuideLines.GuideLinesLayout
+        android:id="@+id/guide_lines"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!--<RelativeLayout-->
+        <!--android:id="@+id/guide_lines_layout"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent">-->
+
+        <!--<kg.delletenebre.rearviewcamera.GuideLines.GuideLinesView-->
+            <!--android:id="@+id/guide_lines"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent" />-->
+
+        <!---->
+
+    <!--</RelativeLayout>-->
+
+    <RelativeLayout
+        android:id="@+id/guide_lines_edit_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+    </RelativeLayout>
+
 
 </FrameLayout>

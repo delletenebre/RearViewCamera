@@ -134,7 +134,7 @@ public final class USBMonitor {
 				context.registerReceiver(mUsbReceiver, filter);
 			}
 			mDeviceCounts = 0;
-			mHandler.postDelayed(mDeviceCheckRunnable, 1000);
+			//mHandler.postDelayed(mDeviceCheckRunnable, 1000);
 		}
 	}
 
